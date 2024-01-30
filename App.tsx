@@ -45,11 +45,10 @@ const App = () => {
     setTodos(newTodos);
   };
 
-  // UPDATE (renomeado para markDone)
   const markDone = async (id: number) => {
     const newTodos = todos.map((todo: any) => {
       if (todo.id === id) {
-        return { ...todo, done: !todo.done }; // Alterna entre feito e não feito
+        return { ...todo, done: !todo.done }; 
       }
       return todo;
     });
