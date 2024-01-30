@@ -14,8 +14,8 @@ ul {
 }
 
 .sec1 {
-  border: solid white;
-  width: 15vw;
+
+  width: 20vw;
   display: flex;
   justify-content: space-evenly;
   padding: 10px;

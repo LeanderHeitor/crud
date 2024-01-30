@@ -5,6 +5,8 @@ import axios from "axios";
 
 const App = () => {
   const [todos, setTodos] = useState([]);
+  const [editingTodoId, setEditingTodoId] = useState(null);
+  const [editedTodoText, setEditedTodoText] = useState("");
 
   // MÉTODOS: GET, POST, DELETE, UPDATE
 
@@ -15,12 +17,9 @@ const App = () => {
     });
   }, []);
 
-
   // POST
   const addTodo = async () => {
     const todoTitle = document.getElementById("todoTitle") as HTMLInputElement;
-
-
     const title = todoTitle.value.trim();
     const capitalizedTitle = title.charAt(0).toUpperCase() + title.slice(1);
 
@@ -30,7 +29,7 @@ const App = () => {
     };
 
     if (title === "") {
-      alert("Please enter a to-do title");
+      alert("Por favor, insira um título para a tarefa");
     } else {
       await api.post("http://localhost:5555/todos", newTodo);
       const response = await api.get("http://localhost:5555/todos");
@@ -38,8 +37,6 @@ const App = () => {
       todoTitle.value = "";
     }
   };
-
-
 
   // DELETE
   const deleteTodo = async (id: number) => {
@@ -61,23 +58,67 @@ const App = () => {
     setTodos(newTodos);
   };
 
+  // EDIT
+  const startEditing = (id: number, text: string) => {
+    setEditingTodoId(id);
+    setEditedTodoText(text);
+  };
+
+  const cancelEditing = () => {
+    setEditingTodoId(null);
+    setEditedTodoText("");
+  };
+
+  const updateTodo = async (id: number) => {
+    const updatedTodo = {
+      title: editedTodoText,
+      done: todos.find((todo: any) => todo.id === id).done,
+    };
+
+    await axios.put(`http://localhost:5555/todos/${id}`, updatedTodo);
+    const newTodos = todos.map((todo: any) => (todo.id === id ? { ...todo, title: editedTodoText } : todo));
+    setTodos(newTodos);
+    setEditingTodoId(null);
+    setEditedTodoText("");
+  };
+
   return (
     <>
-
-      <h1>To-Do List</h1>
+      <h1>Lista de Tarefas</h1>
       <ul>
         {todos.map((todo: any) => (
           <div key={todo.id} className={`sec1 ${todo.done ? 'done' : ''}`}>
-            <span className="dataContainer">{todo.done ? <s>{todo.title}</s> : todo.title}</span>
-            <button onClick={() => markDone(todo.id)}>{todo.done ? "Desfazer" : "Feito"}</button>
-            <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+            {editingTodoId === todo.id ? (
+              <>
+                <input
+                  type="text"
+                  value={editedTodoText}
+                  onChange={(e) => setEditedTodoText(e.target.value)}
+                />
+                <button onClick={() => updateTodo(todo.id)}>Atualizar</button>
+                <button onClick={cancelEditing}>Cancelar</button>
+              </>
+            ) : (
+              <>
+                <span className="dataContainer">
+                  {todo.done ? <s>{todo.title}</s> : todo.title}
+                </span>
+                <button onClick={() => markDone(todo.id)}>
+                  {todo.done ? "Desfazer" : "Feito"}
+                </button>
+                <button onClick={() => startEditing(todo.id, todo.title)}>
+                  Editar
+                </button>
+                <button onClick={() => deleteTodo(todo.id)}>Excluir</button>
+              </>
+            )}
           </div>
         ))}
       </ul>
       <div className="createTodoContainer">
-        <label htmlFor="">Adicione uma tarefa:    </label>
+        <label htmlFor="">Adicione uma tarefa:</label>
         <input type="text" id="todoTitle" className="titleIpt" required />
-        <button onClick={addTodo}>Add To-Do</button>
+        <button onClick={addTodo}>Adicionar Tarefa</button>
       </div>
     </>
   );
